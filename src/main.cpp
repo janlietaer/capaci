@@ -1,5 +1,5 @@
 #include <Arduino.h>
-
+// to do , neenhden aanpassen zo dat eenheden niet mee ws zijn maar meer in detail?
 volatile int32_t reedsverbruiktditkwartier;          // hoeveel is reeeds verbruik in het huidig kwartier, pas op kan negatief zijn als er zonnepanelen zijn
 volatile uint32_t maandpiek = 625;                  // gewenste maandelijkse piek  (625*4 = 2500)
 volatile int32_t seconde_meterverbruik;             // hoeveel is de laatste soconde verbruikt volgens de slimme meter pa sop kan negatief zijn met pv

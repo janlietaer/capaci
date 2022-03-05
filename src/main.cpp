@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-volatile int32_t reedsverbuiktditkwartier;          // hoeveel is reeeds verbruik in het huidig kwartier, pas op kan negatief zijn als er zonnepanelen zijn
+volatile int32_t reedsverbruiktditkwartier;          // hoeveel is reeeds verbruik in het huidig kwartier, pas op kan negatief zijn als er zonnepanelen zijn
 volatile uint32_t maandpiek = 625;                  // gewenste maandelijkse piek  (625*4 = 2500)
 volatile int32_t seconde_meterverbruik;             // hoeveel is de laatste soconde verbruikt volgens de slimme meter pa sop kan negatief zijn met pv
 volatile boolean nieuwkwartier = false;             // is er een nieuw kwartier begonnen?
@@ -22,23 +22,24 @@ void loop()
         if (nieuwkwartier == true)                      // een nieuw kwartier begon
         {
             nieuwkwartier = false;
-            reedsverbuiktditkwartier = 0;
+            reedsverbruiktditkwartier = 0;
             secondenverinkwartier = 0;
-            if (maandpiek > reedsverbuiktditkwartier)   // in kwartier dat juist voorbij is was het verbruik hoger dan de vorige maand record
+            if (maandpiek > reedsverbruiktditkwartier)   // in kwartier dat juist voorbij is was het verbruik hoger dan de vorige maand record
             {
-                maandpiek = reedsverbuiktditkwartier;
+                maandpiek = reedsverbruiktditkwartier;
             }
         }
+
         if (nieuwemaand == true)                        // een nieuwe maand begon
         {
             nieuwemaand = false;
             maandpiek = 625;
         }
 
-        secondenverinkwartier = secondenverinkwartier + 1;                           // we zijn een seconde verder  , dit kan beter door de tijd uit de meter communicatie te halen?
-        reedsverbuiktditkwartier = reedsverbuiktditkwartier + seconde_meterverbruik; // updaten totaal reeds gebruikt in huidig kwartier
+        secondenverinkwartier++; // = secondenverinkwartier + 1;                           // we zijn een seconde verder  , dit kan beter door de tijd uit de meter communicatie te halen?
+        reedsverbruiktditkwartier +=  seconde_meterverbruik; // updaten totaal reeds gebruikt in huidig kwartier
       
-        if (reedsverbuiktditkwartier + maxverbruikperseconde * (900 - secondenverinkwartier) > maandpiek)   // als vanaf nu voor de rest van het kwartier het volle bak verbruik is, komen we er dan nog?
+        if (reedsverbruiktditkwartier + maxverbruikperseconde * (900 - secondenverinkwartier) > maandpiek)   // als vanaf nu voor de rest van het kwartier het volle bak verbruik is, komen we er dan nog?
         {
             boilerAan = false;  // deze boolean met een pin verbinden en deze dan gebruiken voor een relaisof shelly, home assitant,... aan te sturen
         }

@@ -6,16 +6,16 @@ volatile int32_t seconde_meterverbruik;    // hoeveel is de laatste soconde verb
 volatile boolean nieuwkwartier = false;     // is er een nieuw kwartier begonnen?
 volatile boolean nieuwemaand = false;       // is er een nieuwe maand begonnen?
 volatile uint16_t secondenverinkwartier = 0;   // hoeveel seconden ver zijn we al in het huidig kwartier
-volatile int16_t maxverbruikperseconde =10; // hoeveel kan verbruikt worden per seconde (ofwel max vermogen dat door de hoofd zekering kan, ofwel historische piek per seconde?)
+volatile int16_t maxverbruikperseconde = 10; // hoeveel kan verbruikt worden per seconde (ofwel max vermogen dat door de hoofd zekering kan, ofwel historische piek per seconde?)
 volatile boolean boilerAan = false;         // moet de boiler aan of uit ?
-boolean Nieuwe_Meter_Communicatie = false;  // is er nieuwe communicatie vanuit de meter?
+volatile boolean Nieuwe_Meter_Communicatie = false;  // is er nieuwe communicatie vanuit de meter?
 
 void loop()
 {
     // hier moet iets komen dat 
     //  de meter uitleest in de variabele seconde_meterverbruik 
-    //  nieuwkwartier  op true zet als er een nieuw kwartier begint
-    //  nieuwemaand  op true zet als er een nieuw maand begint
+    //  nieuw kwartier  op true zet als er een nieuw kwartier begint
+    //  nieuwe maand  op true zet als er een nieuw maand begint
 
     if (Nieuwe_Meter_Communicatie == true)  // er is een nieuw bericht uit de meter
     {
@@ -34,7 +34,8 @@ void loop()
             nieuwemaand = false;
             maandpiek = 625;
         }
-        secondenverinkwartier = secondenverinkwartier + 1;                                // we zijn een seconde verder  , dt kan beter dor de tijd uit de meter communicatie te halen
+        
+        secondenverinkwartier = secondenverinkwartier + 1;                           // we zijn een seconde verder  , dit kan beter door de tijd uit de meter communicatie te halen?
         reedsverbuiktditkwartier = reedsverbuiktditkwartier + seconde_meterverbruik; // updaten totaal reeds gebruikt in huidig kwartier
       
         if (reedsverbuiktditkwartier + maxverbruikperseconde * (900 - secondenverinkwartier) > maandpiek)   // als vanaf nu voor de rest van het kwartier het volle bak verbruik is, komen we er dan nog?

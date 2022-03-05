@@ -2,13 +2,13 @@
 
 volatile int32_t reedsverbuiktditkwartier;  // hoeveel is reeeds verbruik in het huidig kwartier, pas op kan negatief zijn als er zonnepanelen zijn
 volatile uint32_t maandpiek = 625;          // gewenste maandelijkse piek  (625*4 = 2500)
-volatile uint32_t seconde_meterverbruik;    // hoeveel is de laatste soconde verbruikt volgendde slimme meter
+volatile int32_t seconde_meterverbruik;    // hoeveel is de laatste soconde verbruikt volgens de slimme meter pa sop kan negatief zijn met pv
 volatile boolean nieuwkwartier = false;     // is er een nieuw kwartier begonnen?
 volatile boolean nieuwemaand = false;       // is er een nieuwe maand begonnen?
 volatile uint16_t secondenverinkwartier = 0;   // hoeveel seconden ver zijn we al in het huidig kwartier
-volatile int16_t maxverbruikperseconde =10; // hoeveel kan verbuikt orden per seconde (ofwelv max vermogen dat door de hoofd zekering kan, ofwel historische piek per seconde?)
+volatile int16_t maxverbruikperseconde =10; // hoeveel kan verbruikt worden per seconde (ofwel max vermogen dat door de hoofd zekering kan, ofwel historische piek per seconde?)
 volatile boolean boilerAan = false;         // moet de boiler aan of uit ?
-boolean Nieuwe_Meter_Communicatie = false;  // is er nieuwe communicatie vanuit de mete?
+boolean Nieuwe_Meter_Communicatie = false;  // is er nieuwe communicatie vanuit de meter?
 
 void loop()
 {

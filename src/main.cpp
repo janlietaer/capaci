@@ -40,11 +40,11 @@ void loop()
       
         if (reedsverbuiktditkwartier + maxverbruikperseconde * (900 - secondenverinkwartier) > maandpiek)   // als vanaf nu voor de rest van het kwartier het volle bak verbruik is, komen we er dan nog?
         {
-            boilerAan = false;  
+            boilerAan = false;  // deze boolean met een pin verbinden en deze dan gebruiken voor een relaisof shelly, home assitant,... aan te sturen
         }
         else
         {
-            boilerAan = true;
+            boilerAan = true;   // deze boolean met een pin verbinden en deze dan gebruiken voor een relais of shelly, home assitant,... aan te sturen
         }
  
     }

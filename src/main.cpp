@@ -38,6 +38,7 @@ void loop()
         reedsverbuiktditkwartier = reedsverbuiktditkwartier + seconde_meterverbruik; // updaten totaal reeds gebruikt in huidig kwartier
       
         if (reedsverbuiktditkwartier + maxverbruikperseconde * (900 - secondenverinkwartier) > maandpiek)   // als vanaf nu voor de rest van het kwartier het volle bak verbruik is, komen we er dan nog?
+        {
             boilerAan = false;  
         }
         else

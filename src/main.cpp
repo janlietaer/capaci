@@ -24,7 +24,7 @@ void loop()
             nieuwkwartier = false;
             reedsverbruiktditkwartier = 0;
             secondenverinkwartier = 0;
-            if (maandpiek > reedsverbruiktditkwartier)   // in kwartier dat juist voorbij is was het verbruik hoger dan de vorige maand record
+            if ( reedsverbruiktditkwartier>maandpiek)   // in kwartier dat juist voorbij is was het verbruik hoger dan de vorige maand record
             {
                 maandpiek = reedsverbruiktditkwartier;
             }
@@ -36,7 +36,7 @@ void loop()
             maandpiek = 625;
         }
 
-        secondenverinkwartier++; // = secondenverinkwartier + 1;                           // we zijn een seconde verder  , dit kan beter door de tijd uit de meter communicatie te halen?
+        secondenverinkwartier++;                             // we zijn een seconde verder  , dit kan beter door de tijd uit de meter communicatie te halen?
         reedsverbruiktditkwartier +=  seconde_meterverbruik; // updaten totaal reeds gebruikt in huidig kwartier
       
         if (reedsverbruiktditkwartier + maxverbruikperseconde * (900 - secondenverinkwartier) > maandpiek)   // als vanaf nu voor de rest van het kwartier het volle bak verbruik is, komen we er dan nog?

@@ -14,11 +14,7 @@ volatile boolean boilerAan = false;                 // moet de boiler aan of uit
 volatile boolean Nieuwe_Meter_Communicatie = false; // is er nieuwe communicatie vanuit de meter?
 
 volatile uint8_t maand, kwartier, secondeinkwartier;
-float janf;
-uint32_t janint;
-
-String janss;
-
+ 
 using MyData = ParsedData<
     /* String */ identification,
     /* String */ p1_version,

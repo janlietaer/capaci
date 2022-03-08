@@ -69,14 +69,13 @@ using MyData = ParsedData<
     /* uint8_t */ water_valve_position,
     /* TimestampedFixedValue */ water_delivered>;
 
-#define LEDJE 22
-
 P1Reader reader(&Serial1, 2);
-
+#define  LED_BUILDIN 22
 void setup()
 {
     Serial.begin(115200);
     Serial1.begin(115200);
+    pinMode(LED_BUILDIN, OUTPUT);
 #ifdef VCC_ENABLE
     // This is needed on Pinoccio Scout boards to enable the 3V3 pin.
     pinMode(VCC_ENABLE, OUTPUT);
@@ -87,13 +86,12 @@ void setup()
     reader.enable(true);
 }
 
-void bereken(boolean lnieuwkwartier, boolean lnieuwemaand, uint32_t lseconde_meterverbruik, int16_t secondenverinkwartier)
+void bereken(boolean lnieuwkwartier, boolean lnieuwemaand, uint32_t lseconde_meterverbruik, int16_t lsecondenverinkwartier)
 {
     if (lnieuwkwartier == true) // een nieuw kwartier begon
     {
-        lnieuwkwartier = false;
         reedsverbruiktditkwartier = 0;
-        secondenverinkwartier = 0;
+
         if (reedsverbruiktditkwartier > maandpiek) // in kwartier dat juist voorbij is was het verbruik hoger dan de vorige maand record
         {
             maandpiek = reedsverbruiktditkwartier;
@@ -102,7 +100,7 @@ void bereken(boolean lnieuwkwartier, boolean lnieuwemaand, uint32_t lseconde_met
 
     if (lnieuwemaand == true) // een nieuwe maand begon
     {
-        lnieuwemaand = false;
+
         maandpiek = 625;
     }
 
@@ -111,17 +109,17 @@ void bereken(boolean lnieuwkwartier, boolean lnieuwemaand, uint32_t lseconde_met
     if (reedsverbruiktditkwartier + maxverbruikperseconde * (900 - secondenverinkwartier) > maandpiek) // als vanaf nu voor de rest van het kwartier het volle bak verbruik is, komen we er dan nog?
     {
         boilerAan = false; // deze boolean met een pin verbinden en deze dan gebruiken voor een relaisof shelly, home assitant,... aan te sturen
-        digitalWrite(LEDJE, LOW);
+        digitalWrite(LED_BUILDIN, LOW);
     }
     else
     {
         boilerAan = true; // deze boolean met een pin verbinden en deze dan gebruiken voor een relais of shelly, home assitant,... aan te sturen
-        digitalWrite(LEDJE, HIGH);
+        digitalWrite(LED_BUILDIN, HIGH);
     }
 }
 
 void loop()
- 
+{
 
     if (reader.available())
     {
@@ -129,21 +127,26 @@ void loop()
         String err;
         if (reader.parse(&data, &err))
         {
-        
+
             //           1234567890123
             // 0-0:1.0.0(200830134039S)
- 
-            if (maand = !data.timestamp.substring(3, 4).toInt())
+
+            seconde_meterverbruik = 0;
+
+            nieuwemaand = false;
+            nieuwkwartier = false;
+
+            if (maand != data.timestamp.substring(3, 4).toInt())
             {
                 maand = data.timestamp.substring(3, 4).toInt();
                 nieuwemaand = true;
             }
-            if (kwartier = !data.timestamp.substring(9, 10).toInt() / 15)
+            if (kwartier != data.timestamp.substring(9, 10).toInt() / 15)
             {
                 kwartier = data.timestamp.substring(9, 10).toInt() / 15;
                 nieuwkwartier = true;
             }
-            secondeinkwartier = (data.timestamp.substring(9, 10).toInt() - kwartier) * 60 + data.timestamp.substring(11,12).toInt();
+            secondeinkwartier = (data.timestamp.substring(9, 10).toInt() - kwartier) * 60 + data.timestamp.substring(11, 12).toInt();
 
             // jan= data power_delivered.
 

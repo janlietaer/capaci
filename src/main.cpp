@@ -69,6 +69,8 @@ using MyData = ParsedData<
     /* uint8_t */ water_valve_position,
     /* TimestampedFixedValue */ water_delivered>;
 
+#define LEDJE 22
+
 P1Reader reader(&Serial1, 2);
 
 void setup()
@@ -109,19 +111,17 @@ void bereken(boolean lnieuwkwartier, boolean lnieuwemaand, uint32_t lseconde_met
     if (reedsverbruiktditkwartier + maxverbruikperseconde * (900 - secondenverinkwartier) > maandpiek) // als vanaf nu voor de rest van het kwartier het volle bak verbruik is, komen we er dan nog?
     {
         boilerAan = false; // deze boolean met een pin verbinden en deze dan gebruiken voor een relaisof shelly, home assitant,... aan te sturen
+        digitalWrite(LEDJE, LOW);
     }
     else
     {
         boilerAan = true; // deze boolean met een pin verbinden en deze dan gebruiken voor een relais of shelly, home assitant,... aan te sturen
+        digitalWrite(LEDJE, HIGH);
     }
 }
 
 void loop()
-{
-    //  hier moet iets komen dat
-    //  de meter uitleest in de variabele seconde_meterverbruik
-    //  nieuw kwartier  op true zet als er een nieuw kwartier begint
-    //  nieuwe maand  op true zet als er een nieuw maand begint
+ 
 
     if (reader.available())
     {
@@ -129,23 +129,21 @@ void loop()
         String err;
         if (reader.parse(&data, &err))
         {
-            // Parse succesful, print result
-            //          1234567890123
+        
+            //           1234567890123
             // 0-0:1.0.0(200830134039S)
-            // berkenenof het neiuwe maand is
-            // bereken of he nieuw kwartier is
-            // test of er een seconde verlopen is ( missing data die echt verbruik onderschatten)
+ 
             if (maand = !data.timestamp.substring(3, 4).toInt())
             {
                 maand = data.timestamp.substring(3, 4).toInt();
                 nieuwemaand = true;
             }
-            if (kwartier = !data.timestamp.substring(10, 11).toInt() / 15)
+            if (kwartier = !data.timestamp.substring(9, 10).toInt() / 15)
             {
-                kwartier = data.timestamp.substring(10, 11).toInt() / 15;
+                kwartier = data.timestamp.substring(9, 10).toInt() / 15;
                 nieuwkwartier = true;
             }
-            secondeinkwartier = (data.timestamp.substring(10, 11).toInt() - kwartier) * 60 + data.timestamp.substring(12, 13).toInt();
+            secondeinkwartier = (data.timestamp.substring(9, 10).toInt() - kwartier) * 60 + data.timestamp.substring(11,12).toInt();
 
             // jan= data power_delivered.
 
@@ -159,13 +157,12 @@ void loop()
             }
 
             bereken(nieuwemaand, nieuwkwartier, seconde_meterverbruik, secondeinkwartier);
-            // nog niet erin 
+            // nog niet erin
             //   wat als er data verloren gaat bij kwartier omaand overgang?
             //   wat als er een maatin overgeslagen wordt( op te lossen door meet duur tyoe te voegen , normaal 1 seconde kan meer zijn)
             //      meet duur moet ook neiuwe maand kwartier compatibel zijn
-
-
-
+            // wat gebeurt er als het systeem faalt( alles uit of alles aan?
+            // watch dog timer?
         }
         else
         {

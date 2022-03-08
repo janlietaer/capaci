@@ -1,6 +1,9 @@
 #include <Arduino.h>
+#include "dsmr.h"
+#include <Time.h>
+
 // to do , neenhden aanpassen zo dat eenheden niet mee ws zijn maar meer in detail?
-volatile int32_t reedsverbruiktditkwartier;          // hoeveel is reeeds verbruik in het huidig kwartier, pas op kan negatief zijn als er zonnepanelen zijn
+volatile int32_t reedsverbruiktditkwartier;         // hoeveel is reeeds verbruik in het huidig kwartier, pas op kan negatief zijn als er zonnepanelen zijn
 volatile uint32_t maandpiek = 625;                  // gewenste maandelijkse piek  (625*4 = 2500)
 volatile int32_t seconde_meterverbruik;             // hoeveel is de laatste soconde verbruikt volgens de slimme meter pa sop kan negatief zijn met pv
 volatile boolean nieuwkwartier = false;             // is er een nieuw kwartier begonnen?
@@ -10,43 +13,165 @@ volatile int16_t maxverbruikperseconde = 10;        // hoeveel kan verbruikt wor
 volatile boolean boilerAan = false;                 // moet de boiler aan of uit ?
 volatile boolean Nieuwe_Meter_Communicatie = false; // is er nieuwe communicatie vanuit de meter?
 
+volatile uint8_t maand, kwartier, secondeinkwartier;
+float janf;
+uint32_t janint;
+
+String janss;
+
+using MyData = ParsedData<
+    /* String */ identification,
+    /* String */ p1_version,
+    /* String */ timestamp,
+    /* String */ equipment_id,
+    /* FixedValue */ energy_delivered_tariff1,
+    /* FixedValue */ energy_delivered_tariff2,
+    /* FixedValue */ energy_returned_tariff1,
+    /* FixedValue */ energy_returned_tariff2,
+    /* String */ electricity_tariff,
+    /* FixedValue */ power_delivered,
+    /* FixedValue */ power_returned,
+    /* FixedValue */ electricity_threshold,
+    /* uint8_t */ electricity_switch_position,
+    /* uint32_t */ electricity_failures,
+    /* uint32_t */ electricity_long_failures,
+    /* String */ electricity_failure_log,
+    /* uint32_t */ electricity_sags_l1,
+    /* uint32_t */ electricity_sags_l2,
+    /* uint32_t */ electricity_sags_l3,
+    /* uint32_t */ electricity_swells_l1,
+    /* uint32_t */ electricity_swells_l2,
+    /* uint32_t */ electricity_swells_l3,
+    /* String */ message_short,
+    /* String */ message_long,
+    /* FixedValue */ voltage_l1,
+    /* FixedValue */ voltage_l2,
+    /* FixedValue */ voltage_l3,
+    /* FixedValue */ current_l1,
+    /* FixedValue */ current_l2,
+    /* FixedValue */ current_l3,
+    /* FixedValue */ power_delivered_l1,
+    /* FixedValue */ power_delivered_l2,
+    /* FixedValue */ power_delivered_l3,
+    /* FixedValue */ power_returned_l1,
+    /* FixedValue */ power_returned_l2,
+    /* FixedValue */ power_returned_l3,
+    /* uint16_t */ gas_device_type,
+    /* String */ gas_equipment_id,
+    /* uint8_t */ gas_valve_position,
+    /* TimestampedFixedValue */ gas_delivered,
+    /* uint16_t */ thermal_device_type,
+    /* String */ thermal_equipment_id,
+    /* uint8_t */ thermal_valve_position,
+    /* TimestampedFixedValue */ thermal_delivered,
+    /* uint16_t */ water_device_type,
+    /* String */ water_equipment_id,
+    /* uint8_t */ water_valve_position,
+    /* TimestampedFixedValue */ water_delivered>;
+
+P1Reader reader(&Serial1, 2);
+
+void setup()
+{
+    Serial.begin(115200);
+    Serial1.begin(115200);
+#ifdef VCC_ENABLE
+    // This is needed on Pinoccio Scout boards to enable the 3V3 pin.
+    pinMode(VCC_ENABLE, OUTPUT);
+    digitalWrite(VCC_ENABLE, HIGH);
+#endif
+
+    // start a read right away
+    reader.enable(true);
+}
+
+void bereken(boolean lnieuwkwartier, boolean lnieuwemaand, uint32_t lseconde_meterverbruik, int16_t secondenverinkwartier)
+{
+    if (lnieuwkwartier == true) // een nieuw kwartier begon
+    {
+        lnieuwkwartier = false;
+        reedsverbruiktditkwartier = 0;
+        secondenverinkwartier = 0;
+        if (reedsverbruiktditkwartier > maandpiek) // in kwartier dat juist voorbij is was het verbruik hoger dan de vorige maand record
+        {
+            maandpiek = reedsverbruiktditkwartier;
+        }
+    }
+
+    if (lnieuwemaand == true) // een nieuwe maand begon
+    {
+        lnieuwemaand = false;
+        maandpiek = 625;
+    }
+
+    reedsverbruiktditkwartier += lseconde_meterverbruik; // updaten totaal reeds gebruikt in huidig kwartier
+
+    if (reedsverbruiktditkwartier + maxverbruikperseconde * (900 - secondenverinkwartier) > maandpiek) // als vanaf nu voor de rest van het kwartier het volle bak verbruik is, komen we er dan nog?
+    {
+        boilerAan = false; // deze boolean met een pin verbinden en deze dan gebruiken voor een relaisof shelly, home assitant,... aan te sturen
+    }
+    else
+    {
+        boilerAan = true; // deze boolean met een pin verbinden en deze dan gebruiken voor een relais of shelly, home assitant,... aan te sturen
+    }
+}
+
 void loop()
 {
-    //  hier moet iets komen dat 
-    //  de meter uitleest in de variabele seconde_meterverbruik 
+    //  hier moet iets komen dat
+    //  de meter uitleest in de variabele seconde_meterverbruik
     //  nieuw kwartier  op true zet als er een nieuw kwartier begint
     //  nieuwe maand  op true zet als er een nieuw maand begint
 
-    if (Nieuwe_Meter_Communicatie == true)              // er is een nieuw bericht uit de meter
+    if (reader.available())
     {
-        if (nieuwkwartier == true)                      // een nieuw kwartier begon
+        MyData data;
+        String err;
+        if (reader.parse(&data, &err))
         {
-            nieuwkwartier = false;
-            reedsverbruiktditkwartier = 0;
-            secondenverinkwartier = 0;
-            if ( reedsverbruiktditkwartier>maandpiek)   // in kwartier dat juist voorbij is was het verbruik hoger dan de vorige maand record
+            // Parse succesful, print result
+            //          1234567890123
+            // 0-0:1.0.0(200830134039S)
+            // berkenenof het neiuwe maand is
+            // bereken of he nieuw kwartier is
+            // test of er een seconde verlopen is ( missing data die echt verbruik onderschatten)
+            if (maand = !data.timestamp.substring(3, 4).toInt())
             {
-                maandpiek = reedsverbruiktditkwartier;
+                maand = data.timestamp.substring(3, 4).toInt();
+                nieuwemaand = true;
             }
-        }
+            if (kwartier = !data.timestamp.substring(10, 11).toInt() / 15)
+            {
+                kwartier = data.timestamp.substring(10, 11).toInt() / 15;
+                nieuwkwartier = true;
+            }
+            secondeinkwartier = (data.timestamp.substring(10, 11).toInt() - kwartier) * 60 + data.timestamp.substring(12, 13).toInt();
 
-        if (nieuwemaand == true)                        // een nieuwe maand begon
-        {
-            nieuwemaand = false;
-            maandpiek = 625;
-        }
+            // jan= data power_delivered.
 
-        secondenverinkwartier++;                             // we zijn een seconde verder  , dit kan beter door de tijd uit de meter communicatie te halen?
-        reedsverbruiktditkwartier +=  seconde_meterverbruik; // updaten totaal reeds gebruikt in huidig kwartier
-      
-        if (reedsverbruiktditkwartier + maxverbruikperseconde * (900 - secondenverinkwartier) > maandpiek)   // als vanaf nu voor de rest van het kwartier het volle bak verbruik is, komen we er dan nog?
-        {
-            boilerAan = false;  // deze boolean met een pin verbinden en deze dan gebruiken voor een relaisof shelly, home assitant,... aan te sturen
+            if (data.power_delivered >= 0)
+            {
+                seconde_meterverbruik = data.power_delivered;
+            }
+            if (data.power_returned < 0)
+            {
+                seconde_meterverbruik = data.power_returned;
+            }
+
+            bereken(nieuwemaand, nieuwkwartier, seconde_meterverbruik, secondeinkwartier);
+            // nog niet erin 
+            //   wat als er data verloren gaat bij kwartier omaand overgang?
+            //   wat als er een maatin overgeslagen wordt( op te lossen door meet duur tyoe te voegen , normaal 1 seconde kan meer zijn)
+            //      meet duur moet ook neiuwe maand kwartier compatibel zijn
+
+
+
         }
         else
         {
-            boilerAan = true;   // deze boolean met een pin verbinden en deze dan gebruiken voor een relais of shelly, home assitant,... aan te sturen
+            // Parser error, print error
+            Serial.println(err);
         }
- 
+        reader.clear();
     }
 }

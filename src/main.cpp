@@ -14,7 +14,7 @@ volatile boolean boilerAan = false;                 // moet de boiler aan of uit
 volatile boolean Nieuwe_Meter_Communicatie = false; // is er nieuwe communicatie vanuit de meter?
 
 volatile uint8_t maand, kwartier, secondeinkwartier;
- 
+
 using MyData = ParsedData<
     /* String */ identification,
     /* String */ p1_version,
@@ -66,7 +66,7 @@ using MyData = ParsedData<
     /* TimestampedFixedValue */ water_delivered>;
 
 P1Reader reader(&Serial1, 2);
-#define  LED_BUILDIN 22
+#define LED_BUILDIN 22
 void setup()
 {
     Serial.begin(115200);
@@ -127,8 +127,6 @@ void loop()
             //           1234567890123
             // 0-0:1.0.0(200830134039S)
 
-            seconde_meterverbruik = 0;
-
             nieuwemaand = false;
             nieuwkwartier = false;
 
@@ -142,18 +140,9 @@ void loop()
                 kwartier = data.timestamp.substring(9, 10).toInt() / 15;
                 nieuwkwartier = true;
             }
-            secondeinkwartier = (data.timestamp.substring(9, 10).toInt() - kwartier) * 60 + data.timestamp.substring(11, 12).toInt();
+            secondeinkwartier = (data.timestamp.substring(9, 10).toInt() - 15 * kwartier) * 60 + data.timestamp.substring(11, 12).toInt();
 
-            // jan= data power_delivered.
-
-            if (data.power_delivered >= 0)
-            {
-                seconde_meterverbruik = data.power_delivered;
-            }
-            if (data.power_returned < 0)
-            {
-                seconde_meterverbruik = data.power_returned;
-            }
+            seconde_meterverbruik = data.power_delivered + data.power_returned;
 
             bereken(nieuwemaand, nieuwkwartier, seconde_meterverbruik, secondeinkwartier);
             // nog niet erin

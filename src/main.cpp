@@ -9,10 +9,10 @@ using MyData = ParsedData<
     /* FixedValue */ power_returned>;
 
 int32_t reedsverbruiktditkwartier;  // hoeveel is reeeds verbruik in het huidig kwartier, pas op kan negatief zijn als er zonnepanelen zijn
-uint32_t maandpiek = 625;           // gewenste maandelijkse piek  (625*4 = 2500)
+uint32_t maandpiek = 2250000;           // gewenste maandelijkse piek  (2500 *900 = 2250000)
 int32_t seconde_meterverbruik;      // hoeveel is de laatste seconde verbruikt volgens de slimme meter pa sop kan negatief zijn met pv
 uint16_t secondenverinkwartier = 0; // hoeveel seconden ver zijn we al in het huidig kwartier
-int16_t maxverbruikperseconde = 10; // hoeveel kan verbruikt worden per seconde, zonder geschakelde gebruikers (ofwel max vermogen dat door de hoofd zekering kan, ofwel historische piek per seconde?)
+int16_t maxverbruikperseconde = 12000; // hoeveel kan verbruikt worden per seconde, zonder geschakelde gebruikers (ofwel max vermogen dat door de hoofd zekering kan, ofwel historische piek per seconde?)
 boolean boilerAan = false;          // moet de boiler aan of uit ?
 uint8_t maand, kwartier;
 String err;
@@ -39,17 +39,17 @@ void loop()
     if (reader.available())
     {
         if (reader.parse(&data, &err))
-        { //           1234567890123
+        { //             01234567890123
             // 0-0:1.0.0(200830134039S)
-            if (maand != data.timestamp.substring(3, 4).toInt()) // is de maand juist voorbij?  zet het maand piek terugn op 625 wh
+            if (maand != data.timestamp.substring(2, 4).toInt()) // is de maand juist voorbij?  zet het maand piek terugn op 625 wh
             {
-                maand = data.timestamp.substring(3, 4).toInt();
-                maandpiek = 625;
+                maand = data.timestamp.substring(2, 4).toInt();
+                maandpiek = 2250000;
                 Serial.print("Nieuwemaand ");
             }
-            if (kwartier != data.timestamp.substring(9, 10).toInt() / 15) // is het kwartier juist voorbij?
+            if (kwartier != data.timestamp.substring(8, 10).toInt() / 15) // is het kwartier juist voorbij?
             {
-                kwartier = data.timestamp.substring(9, 10).toInt() / 15;
+                kwartier = data.timestamp.substring(8, 10).toInt() / 15;
                 if (reedsverbruiktditkwartier > maandpiek) // in kwartier dat juist voorbij is was het verbruik hoger dan de vorige maand record
                 {
                     maandpiek = reedsverbruiktditkwartier;
@@ -58,7 +58,7 @@ void loop()
                 Serial.println(reedsverbruiktditkwartier);
                 reedsverbruiktditkwartier = 0; // zet het kwartier verbruik terug op 0
             }
-            secondenverinkwartier = (data.timestamp.substring(9, 10).toInt() - 15 * kwartier) * 60 + data.timestamp.substring(11, 12).toInt();
+            secondenverinkwartier = (data.timestamp.substring(8, 10).toInt() - 15 * kwartier) * 60 + data.timestamp.substring(10, 12).toInt();
             reedsverbruiktditkwartier += data.power_delivered + data.power_returned;                           // updaten totaal reeds gebruikt in huidig kwartier PAS OP GAAT MIS ALS DIT BERICHT NIET IEDERE SECONDE KOMT
             if (reedsverbruiktditkwartier + maxverbruikperseconde * (900 - secondenverinkwartier) > maandpiek) // als vanaf nu voor de rest van het kwartier het volle bak verbruik is, komen we er dan nog?
             {

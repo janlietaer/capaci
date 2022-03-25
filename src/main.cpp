@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include "dsmr.h"
 #include <Time.h>
+/* missing  geschakeld vermogen(s) moeten ook meestpelen in het algorithme  */
+
 using MyData = ParsedData<
     /* String */ p1_version,
     /* String */ timestamp,
@@ -12,7 +14,7 @@ int32_t reedsverbruiktditkwartier;  // hoeveel is reeeds verbruik in het huidig 
 uint32_t maandpiek = 2250000;           // gewenste maandelijkse piek  (2500 *900 = 2250000)
 int32_t seconde_meterverbruik;      // hoeveel is de laatste seconde verbruikt volgens de slimme meter pa sop kan negatief zijn met pv
 uint16_t secondenverinkwartier = 0; // hoeveel seconden ver zijn we al in het huidig kwartier
-int16_t maxverbruikperseconde = 12000; // hoeveel kan verbruikt worden per seconde, zonder geschakelde gebruikers (ofwel max vermogen dat door de hoofd zekering kan, ofwel historische piek per seconde?)
+int16_t maxverbruikperseconde = 12000; // hoeveel kan verbruikt worden per seconde, zonder geschakelde gebruikers (ofwel max vermogen dat door de hoofd zekering kan, ofwel historische piek per seconde? eenheid is W seconde)
 boolean boilerAan = false;          // moet de boiler aan of uit ?
 uint8_t maand, kwartier;
 String err;
@@ -45,7 +47,7 @@ void loop()
             {
                 maand = data.timestamp.substring(2, 4).toInt();
                 maandpiek = 2250000;
-                Serial.print("Nieuwemaand ");
+                Serial.println("Nieuwemaand ");
             }
             if (kwartier != data.timestamp.substring(8, 10).toInt() / 15) // is het kwartier juist voorbij?
             {
@@ -54,7 +56,7 @@ void loop()
                 {
                     maandpiek = reedsverbruiktditkwartier;
                 }
-                Serial.print("kwartiereindverbuikt \t");
+                Serial.print("kwartiereindverbuiktWs \t");
                 Serial.println(reedsverbruiktditkwartier);
                 reedsverbruiktditkwartier = 0; // zet het kwartier verbruik terug op 0
             }
@@ -65,11 +67,11 @@ void loop()
                 boilerAan = false; // deze boolean met een pin verbinden en deze dan gebruiken voor een relaisof shelly, home assitant,... aan te sturen
                 digitalWrite(LED_BUILDIN, LOW);
 
-                Serial.print("secondenverinkwartier \t");
+                Serial.print("secondenverinkwartier\t");
                 Serial.print(secondenverinkwartier);
-                Serial.print("kwartiereindverbuikt \t");
+                Serial.print("\tkwartiereindverbuiktWs\t");
                 Serial.println(reedsverbruiktditkwartier);
-                Serial.println("\t uit ");
+                Serial.println("\tuit ");
             }
             else
             {
@@ -77,9 +79,9 @@ void loop()
                 digitalWrite(LED_BUILDIN, HIGH);
                 Serial.print("secondenverinkwartier \t");
                 Serial.print(secondenverinkwartier);
-                Serial.print("kwartiereindverbuikt \t");
+                Serial.print("\tkwartiereindverbuiktWs\t");
                 Serial.print(reedsverbruiktditkwartier);
-                Serial.println("\t aan ");
+                Serial.println("\taan ");
             }
             // nog niet erin
             //   wat als er een meeting overgeslagen wordt( op te lossen door meet duur tyd toe te voegen , normaal 1 seconde kan meer zijn)

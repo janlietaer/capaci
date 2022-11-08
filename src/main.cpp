@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include "dsmr.h"
 #include <Time.h>
+#include <TFT_eSPI.h>
+// #include "TTGO_T_Display.h"
 /* missing  geschakeld vermogen(s) moeten ook meestpelen in het algorithme  */
 
 using MyData = ParsedData<
@@ -10,15 +12,17 @@ using MyData = ParsedData<
     /* FixedValue */ power_delivered,
     /* FixedValue */ power_returned>;
 
-int32_t reedsverbruiktditkwartier;      // hoeveel is reeds verbruik in het huidig kwartier, pas op kan negatief zijn als er zonnepanelen zijn
-uint32_t maandpiek = 2250000;           // gewenste maandelijkse piek  (2500 *900 = 2250000) Watt seconden als default
-int32_t seconde_meterverbruik;          // hoeveel is de laatste seconde verbruikt volgens de slimme meter pas op kan negatief zijn met PV
-uint16_t secondenverinkwartier = 0;     // hoeveel seconden ver zijn we al in het huidig kwartier 0>900
-int16_t maxverbruikperseconde = 12000;  // hoeveel kan verbruikt worden per seconde, zonder geschakelde gebruikers (ofwel max vermogen dat door de hoofd zekering kan, ofwel historische piek per seconde? eenheid is Watt seconde)
-boolean boilerAan = false;              // moet de boiler aan of uit ?
-uint8_t maand, kwartier;                // maand  1>12 , kwartier 
+int32_t reedsverbruiktditkwartier;     // hoeveel is reeds verbruik in het huidig kwartier, pas op kan negatief zijn als er zonnepanelen zijn
+uint32_t maandpiek = 2250000;          // gewenste maandelijkse piek  (2500 *900 = 2250000) Watt seconden als default
+int32_t seconde_meterverbruik;         // hoeveel is de laatste seconde verbruikt volgens de slimme meter pas op kan negatief zijn met PV
+uint16_t secondenverinkwartier = 0;    // hoeveel seconden ver zijn we al in het huidig kwartier 0>900
+int16_t maxverbruikperseconde = 12000; // hoeveel kan verbruikt worden per seconde, zonder geschakelde gebruikers (ofwel max vermogen dat door de hoofd zekering kan, ofwel historische piek per seconde? eenheid is Watt seconde)
+boolean boilerAan = false;             // moet de boiler aan of uit ?
+uint8_t maand, kwartier;               // maand  1>12 , kwartier
 String err;
 MyData data;
+
+TFT_eSPI tft = TFT_eSPI(135, 240); // Invoke custom library
 
 P1Reader reader(&Serial1, 2);
 #define LED_BUILDIN 22
@@ -29,6 +33,23 @@ void setup()
     pinMode(LED_BUILDIN, OUTPUT);
     // start a read right away
     reader.enable(true);
+
+    tft.init();
+    tft.setRotation(0);
+    tft.fillScreen(TFT_BLACK);
+    tft.setTextSize(2);
+    tft.setTextColor(TFT_WHITE);
+    tft.setCursor(0, 0);
+    tft.setTextDatum(MC_DATUM);
+    tft.setTextSize(1);
+
+    tft.fillScreen(TFT_BLACK);
+
+    tft.setRotation(1);
+
+    tft.setTextDatum(0);
+
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
 }
 
 void loop()
@@ -36,7 +57,7 @@ void loop()
     if (reader.available())
     {
         if (reader.parse(&data, &err))
-        {   //            01234567890123
+        { //            01234567890123
             // 0-0:1.0.0(200830134039S)
             if (maand != data.timestamp.substring(2, 4).toInt()) // is de maand juist voorbij?  zet het maand piek terugn op 2250000 Wsec
             {
@@ -77,6 +98,8 @@ void loop()
                 Serial.print(reedsverbruiktditkwartier);
                 Serial.println("\taan ");
             }
+
+            //   boilerAan
             // nog niet erin
             //   wat als er een meeting overgeslagen wordt( op te lossen door meet duur tijd toe te voegen , normaal 1 seconde kan meer zijn)
             //      meet duur moet ook nieuwe maand kwartier compatibel zijn
@@ -88,5 +111,17 @@ void loop()
             Serial.println(err); // Parser error, print error
         }
         reader.clear();
+    }
+    delay(250);
+    tft.drawString("Tijd; " + String(secondenverinkwartier, 1) + " sec "  , 1, 0, 4);
+    tft.drawString("Verbruik: " + String(reedsverbruiktditkwartier,1) + " Ws ", 1, 20, 4);
+    tft.drawString("Maandpiek: " + String(maandpiek, 1) + " Ws ", 1, 40, 4);
+    if (boilerAan == true)
+    {
+        tft.drawString(" AAN ", 1, 70, 4);
+    }
+    else
+    {
+        tft.drawString(" UIT ", 1, 70, 4);
     }
 }

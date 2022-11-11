@@ -56,7 +56,6 @@ void loop()
         if (reader.parse(&data, &err))
         { //            01234567890123
             // 0-0:1.0.0(200830134039S)
-
             if (kwartier != data.timestamp.substring(8, 10).toInt() / 15) // is het kwartier juist voorbij?
             {
                 tft.drawString("Switchtijd vorig: " + String(secondenverinkwartierSwitch, 1) + " sec ", 1, 90, 4);
@@ -115,6 +114,7 @@ void loop()
         }
         reader.clear(); 
     }
+
     delay(250);
     tft.drawString("Tijd: " + String(secondenverinkwartier, 1) + " sec ", 1, 0, 4);
     tft.drawString("Verbruik: " + String(reedsverbruiktditkwartier, 1) + " Ws ", 1, 20, 4);

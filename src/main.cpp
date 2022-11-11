@@ -113,7 +113,7 @@ void loop()
         {
             Serial.println(err); // Parser error, print error
         }
-        reader.clear();
+        reader.clear(); 
     }
     delay(250);
     tft.drawString("Tijd: " + String(secondenverinkwartier, 1) + " sec ", 1, 0, 4);

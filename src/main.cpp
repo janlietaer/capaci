@@ -59,9 +59,8 @@ void loop()
 
             if (kwartier != data.timestamp.substring(8, 10).toInt() / 15) // is het kwartier juist voorbij?
             {
-
-                tft.drawString("Switchtijd Vorig: " + String(secondenverinkwartierSwitch, 1) + " sec ", 1, 80, 4);
-                tft.drawString("Verbruik vorig: " + String(reedsverbruiktditkwartier, 1) + " Ws ", 1, 100, 4);
+                tft.drawString("Switchtijd vorig: " + String(secondenverinkwartierSwitch, 1) + " sec ", 1, 90, 4);
+                tft.drawString("Verbruik vorig: " + String(reedsverbruiktditkwartier, 1) + " Ws ", 1, 110, 4);
 
                 kwartier = data.timestamp.substring(8, 10).toInt() / 15;
                 if (reedsverbruiktditkwartier > maandpiek) // in kwartier dat juist voorbij is was het verbruik hoger dan de vorige maand record
@@ -122,10 +121,10 @@ void loop()
     tft.drawString("Maandpiek: " + String(maandpiek, 1) + " Ws ", 1, 40, 4);
     if (boilerAan == true)
     {
-        tft.drawString(" AAN ", 1, 70, 4);
+        tft.drawString(" AAN ", 1, 65, 4);
     }
     else
     {
-        tft.drawString(" UIT ", 1, 70, 4);
+        tft.drawString(" UIT ", 1, 65, 4);
     }
 }

@@ -30,7 +30,8 @@ P1Reader reader(&Serial1, 2);
 void setup()
 {
     Serial.begin(115200);  // om voor debugging
-    Serial1.begin(115200); // voor meter uit te lezen
+    //Serial1.begin( 115200,,27,,,,); // voor meter uit te lezen
+    Serial1.begin(  115200, SERIAL_8N1, 27, 26 );
     pinMode(LED_BUILDIN, OUTPUT);
     // start a read right away
     reader.enable(true);

@@ -1,0 +1,26 @@
+Drill report for esp32_ttgo_capaci.kicad_pcb
+Created on 11/19/2022 5:18:33 PM
+
+Copper Layer Stackup:
+    =============================================================
+    L1 :  F.Cu                      front
+    L2 :  B.Cu                      back
+
+
+Drill file 'esp32_ttgo_capaci-PTH.drl' contains
+    plated through holes:
+    =============================================================
+    T1  0.750mm  0.0295"  (3 holes)
+    T2  0.760mm  0.0299"  (6 holes)
+    T3  0.762mm  0.0300"  (72 holes)
+    T4  0.800mm  0.0315"  (10 holes)
+
+    Total plated holes count 91
+
+
+Drill file 'esp32_ttgo_capaci-NPTH.drl' contains
+    unplated through holes:
+    =============================================================
+    T1  3.250mm  0.1280"  (2 holes)
+
+    Total unplated holes count 2

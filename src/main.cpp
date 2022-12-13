@@ -35,7 +35,7 @@ void setup()
     pinMode(LED_BUILDIN, OUTPUT);
     // start a read right away
     reader.enable(true);
-
+ 
     tft.init();
     tft.setRotation(0);
     tft.fillScreen(TFT_BLACK);

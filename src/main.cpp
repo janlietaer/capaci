@@ -55,8 +55,8 @@ void loop()
     if (reader.available())
     {
         if (reader.parse(&data, &err))
-        { //            01234567890123
-            // 0-0:1.0.0(200830134039S)
+        { //            01234567890123  
+            // 0-0:1.0.0(200830134039S) 
             if (kwartier != data.timestamp.substring(8, 10).toInt() / 15) // is het kwartier juist voorbij?
             {
                 tft.drawString("Switchtijd vorig: " + String(secondenverinkwartierSwitch, 1) + " sec ", 1, 90, 4);
@@ -69,7 +69,7 @@ void loop()
                 }
                 Serial.print("kwartiereindverbuiktWs \t");
                 Serial.println(reedsverbruiktditkwartier);
-                reedsverbruiktditkwartier = 0; // zet het kwartier verbruik terug op 0
+                reedsverbruiktditkwartier = 0; // zet het kwartier verbruik terug op zeor 0
                 secondenverinkwartierSwitch = 0;
             }
             if (maand != data.timestamp.substring(2, 4).toInt()) // is de maand juist voorbij?  zet het maand piek terugn op 2250000 Wsec
